@@ -27,7 +27,7 @@ class ChatHistoryMemory(BaseMemory):
                 ]
             )
         else:
-            return "\n".join([message.content for message in self.messages])
+            return "\n".join([str(message.content) for message in self.messages])
 
     def reset(self) -> None:
         self.messages = []

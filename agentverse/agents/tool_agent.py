@@ -9,6 +9,8 @@ from agentverse.memory import BaseMemory, ChatHistoryMemory
 from agentverse.message import Message
 from agentverse.utils import AgentAction, AgentFinish
 
+import pdb
+
 from . import agent_registry
 from .base import BaseAgent
 
@@ -59,9 +61,9 @@ class ToolAgent(BaseAgent):
         self._update_tool_memory(tool_observation)
 
         message = Message(
-            content=""
+            content={"diagnose": "", "solution": [], "knowledge": ""}
             if parsed_response is None
-            else parsed_response.return_values["output"],
+            else {"diagnose": parsed_response.return_values["diagnose"], "solution": parsed_response.return_values["solution"], "knowledge": parsed_response.return_values["knowledge"]},
             sender=self.name,
             receiver=self.get_receiver(),
         )
@@ -69,9 +71,11 @@ class ToolAgent(BaseAgent):
 
     async def astep(self, env_description: str = "") -> Message:
         """Asynchronous version of step"""
+        # pdb.set_trace()
         parsed_response = None
         # Initialize the tool_observation with tool_memory
         tool_observation = [self.tool_memory.to_string()]
+        # pdb.set_trace()
         while True:
             prompt = self._fill_prompt_template(env_description, tool_observation)
 
@@ -83,6 +87,7 @@ class ToolAgent(BaseAgent):
                         # If the response is an action, call the tool
                         # and append the observation to tool_observation
                         observation = await self._acall_tool(parsed_response)
+                        # pdb.set_trace()
                         tool_observation.append(
                             parsed_response.log.strip()
                             + f"\nObservation: {observation.strip()}"
@@ -99,14 +104,16 @@ class ToolAgent(BaseAgent):
             logging.error(f"{self.name} failed to generate valid response.")
 
         self._update_tool_memory(tool_observation)
-
+        
         message = Message(
-            content=""
+            content={"diagnose": "", "solution": [], "knowledge": ""}
             if parsed_response is None
-            else parsed_response.return_values["output"],
+            else {"diagnose": parsed_response.return_values['output']["diagnose"], "solution": parsed_response.return_values['output']["solution"], "knowledge": parsed_response.return_values['output']["knowledge"]},
             sender=self.name,
             receiver=self.get_receiver(),
         )
+        # pdb.set_trace()
+
         return message
 
     def _call_tool(self, response: NamedTuple) -> str:
@@ -132,8 +139,10 @@ class ToolAgent(BaseAgent):
         if len(tool_observation) == 1:
             # If no tool is called this turn, do nothing
             return
+
+        # pdb.set_trace()
         messages = [
-            Message(content=observation) for observation in tool_observation[1:]
+            Message(content={"diagnose": observation, "solution": [], "knowledge": ""}) for observation in tool_observation[1:]
         ]
         self.tool_memory.add_message(messages)
 
@@ -166,6 +175,7 @@ class ToolAgent(BaseAgent):
         return Template(self.prompt_template).safe_substitute(input_arguments)
 
     def add_message_to_memory(self, messages: List[Message]) -> None:
+        # pdb.set_trace()
         self.memory.add_message(messages)
 
     def reset(self) -> None:

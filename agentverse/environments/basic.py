@@ -10,6 +10,7 @@ from agentverse.message import Message
 from . import env_registry as EnvironmentRegistry
 from .base import BaseEnvironment
 
+import pdb
 
 @EnvironmentRegistry.register("basic")
 class BasicEnvironment(BaseEnvironment):
@@ -64,7 +65,9 @@ class BasicEnvironment(BaseEnvironment):
 
         # Some rules will select certain messages from all the messages
         selected_messages = self.rule.select_message(self, messages)
+        # pdb.set_trace()        
         self.last_messages = selected_messages
+        
         self.print_messages(selected_messages)
 
         # Update the memory of the agents
@@ -76,6 +79,21 @@ class BasicEnvironment(BaseEnvironment):
         self.cnt_turn += 1
 
         return selected_messages
+
+
+    async def submit(self, messages):
+        """Run one step of the environment"""
+
+        # pdb.set_trace()
+        self.last_messages = [Message(content={"diagnose": messages, "solution": [], "knowledge": ""}, sender="user", receiver={"all"}, tool_response=[])]
+
+        # Update the memory of the agents
+        self.rule.update_memory(self)
+
+        # Update the set of visible agents for each agent
+        self.rule.update_visible_agents(self)
+
+
 
     def print_messages(self, messages: List[Message]) -> None:
         for message in messages:

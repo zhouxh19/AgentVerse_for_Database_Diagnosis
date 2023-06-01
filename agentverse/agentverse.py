@@ -59,3 +59,8 @@ class AgentVerse:
         """Run the environment for one step and return the return message."""
         return_message = asyncio.run(self.environment.step(*args, **kwargs))
         return return_message
+
+    def submit(self, message):
+        """Submit a message to the environment and return the return message."""
+        return_message = asyncio.run(self.environment.submit(message))
+        return return_message

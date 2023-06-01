@@ -56,8 +56,6 @@ class UI:
             img = cv2.imread(f"./imgs/prison/{idx}.png")
         elif self.task == "db_diag":
             img = cv2.imread(f"./imgs/db_diag/{idx}.png")
-        elif "sde" in self.task:
-            img = cv2.imread(f"./imgs/sde/{idx}.png")
         else:
             img = cv2.imread(f"./imgs/{idx}.png")
         base64_str = cv2.imencode(".png", img)[1].tostring()
@@ -96,6 +94,7 @@ class UI:
                 gr.Box.update(visible=any(self.solution_status))
             )
 
+
     def delay_gen_output(self):
         yield (
             self.image_now,
@@ -117,6 +116,7 @@ class UI:
             *[gr.Button.update(visible=statu) for statu in self.solution_status],
             gr.Box.update(visible=any(self.solution_status))
         )
+
 
     def delay_reset(self):
         self.autoplay = False
@@ -156,8 +156,6 @@ class UI:
             background = cv2.imread("./imgs/prison/case_1.png")
         elif self.task == "db_diag":
             background = cv2.imread("./imgs/db_diag/background.png")
-        elif "sde" in self.task:
-            background = cv2.imread("./imgs/sde/background.png")
         else:
             background = cv2.imread("./imgs/background.png")
             back_h, back_w, _ = background.shape
@@ -211,20 +209,11 @@ class UI:
             background = cv2.imread("./imgs/db_diag/background.png")
             img = cv2.imread("./imgs/db_diag/speaking.png", cv2.IMREAD_UNCHANGED)
             if data[0]["message"] != "":
-                cover_img(background, img, (750, 80))
+                cover_img(background, img, (20, 176))
             if data[1]["message"] != "":
-                cover_img(background, img, (310, 220))
+                cover_img(background, img, (65, 110))
             if data[2]["message"] != "":
-                cover_img(background, img, (522, 11))
-        elif "sde" in self.task:
-            background = cv2.imread("./imgs/sde/background.png")
-            img = cv2.imread("./imgs/sde/speaking.png", cv2.IMREAD_UNCHANGED)
-            if data[0]["message"] != "":
-                cover_img(background, img, (692, 330))
-            if data[1]["message"] != "":
-                cover_img(background, img, (692, 660))
-            if data[2]["message"] != "":
-                cover_img(background, img, (692, 990))
+                cover_img(background, img, (115, 110))
         else:
             background = cv2.imread("./imgs/background.png")
             back_h, back_w, _ = background.shape
@@ -263,26 +252,13 @@ class UI:
 
         for message in messages:
             if self.task == "db_diag":
-                content_json: dict = message.content
+                content_json = message.content
                 content_json["diagnose"] = f"[{message.sender}]: {content_json['diagnose']}"
                 _format[self.agent_id[message.sender]]["message"] = json.dumps(content_json)
-            elif "sde" in self.task:
-                if message.sender == "code_tester":
-                    pre_message, message_ = message.content.split("\n")
-                    message_ = "{}\n{}".format(pre_message, json.loads(message_)["feedback"])
-                    _format[self.agent_id[message.sender]]["message"] = "[{}]: {}".format(
-                        message.sender, message_
-                    )
-                else:
-                    _format[self.agent_id[message.sender]]["message"] = "[{}]: {}".format(
-                        message.sender, message.content
-                    )
-
             else:
                 _format[self.agent_id[message.sender]]["message"] = "[{}]: {}".format(
                     message.sender, message.content
                 )
-
         return _format
 
     def gen_output(self):
@@ -320,50 +296,60 @@ class UI:
         for sender, msg in self.messages:
             if sender == 0:
                 avatar = self.get_avatar(0)
-            elif sender == -1:
+            elif sender == -1: # user message
                 avatar = self.get_avatar(-1)
             else:
                 avatar = self.get_avatar((sender - 1) % 11 + 1)
             if self.task == "db_diag":
-                msg_json = json.loads(msg)
+                # pdb.set_trace()
+                if sender == -1:
+                    msg_json = {"diagnose": msg, "solution": [], "knowledge": ""}
+                else:
+                    msg_json = json.loads(msg)
+                
                 self.solution_status = [False] * self.tot_solutions
                 msg = msg_json["diagnose"]
-                if msg_json["solution"] != "":
+                if msg_json["solution"] != []:
                     solution: List[str] = msg_json["solution"]
+                    # pdb.set_trace()
                     for solu in solution:
+                        msg = f"{msg}<br>{solu}"
                         if "query" in solu or "queries" in solu:
-                            self.solution_status[0] = True
+                            if sender == 0:
+                                self.solution_status[0] = True
                             solu = solu.replace("query", '<span style="color:yellow;">query</span>')
-                            solu = solu.replace("queries", '<span style="color:yellow;">queries</span>')
+                            solu = solu.replace("queries", '<span style="color:yellow;">queries</span>')                            
                         if "join" in solu:
-                            self.solution_status[1] = True
-                            solu = solu.replace("join", '<span style="color:yellow;">join</span>')
+                            if sender == 0:
+                                self.solution_status[1] = True
+                            solu = solu.replace("join", '<span style="color:yellow;">join</span>')                            
                         if "index" in solu:
-                            self.solution_status[2] = True
+                            if sender == 0:
+                                self.solution_status[2] = True
                             solu = solu.replace("index", '<span style="color:yellow;">index</span>')
                         if "system configuration" in solu:
-                            self.solution_status[3] = True
+                            if sender == 0:
+                                self.solution_status[3] = True
                             solu = solu.replace("system configuration",
                                                 '<span style="color:yellow;">system configuration</span>')
                         if "monitor" in solu or "Monitor" in solu or "Investigate" in solu:
-                            self.solution_status[4] = True
+                            if sender == 0:
+                                self.solution_status[4] = True
                             solu = solu.replace("monitor", '<span style="color:yellow;">monitor</span>')
                             solu = solu.replace("Monitor", '<span style="color:yellow;">Monitor</span>')
                             solu = solu.replace("Investigate", '<span style="color:yellow;">Investigate</span>')
-                        msg = f"{msg}<br>{solu}"
                 if msg_json["knowledge"] != "":
                     msg = f'{msg}<hr style="margin: 5px 0"><span style="font-style: italic">{msg_json["knowledge"]}<span>'
-            else:
-                msg = msg.replace("<", "&lt;")
-                msg = msg.replace(">", "&gt;")
-            message = (
+
+            message += (
                 f'<div style="display: flex; align-items: center; margin-bottom: 10px;overflow:auto;">'
                 f'<img src="{avatar}" style="width: 5%; height: 5%; border-radius: 25px; margin-right: 10px;">'
                 f'<div style="background-color: gray; color: white; padding: 10px; border-radius: 10px;'
                 f'max-width: 70%; white-space: pre-wrap">'
                 f"{msg}"
-                f"</div></div>" + message
+                f"</div></div>"
             )
+
         message = '<div id="divDetail" style="height:600px;overflow:auto;">' + message + "</div>"
         return message
 

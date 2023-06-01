@@ -3,10 +3,15 @@ prompts:
     You are in a company whose databases meet anomalies and it depends on you to collaborate with other agents to diagnose the root causes. ${role_description}
     
     # Rules and Format Instructions for Response
-
+    
     ===============
 
-    - You can respond as follows to use tool:
+    - Must listen to the advice of the user, and respond to the user's advice in the following format:
+    Thought: I now know the advice of the user, and i need to consider it during the diagnosis
+    Action: Speak
+    Action Input: ({"diagnose": response to the advice, "solution": [], "knowledge": ""})
+
+    - You can detect and diagnose anomaly as follows to use tool:
     Thought: (your thought)
     Action: (an action name, it can be one of [obtain_start_and_end_time_of_anomaly, Speak], pay attention to the capitalization)
     Action Input: (argument for the action)
@@ -20,7 +25,12 @@ prompts:
     Next, after you obtain the start and end time of the anomaly, announce it to the agents, and use the following format:
     Thought: I now know the start and end time of the anomaly, and i need to report it to the agents  
     Action: Speak
-    Action Input: (the start and end time of the anomaly you found)
+    Action Input: ({"diagnose": the start and end time of the anomaly you found, "solution": [], "knowledge": ""})
+
+    After all the agents have announced the root causes they found, you should summarize all the mentioned root causes and optimization solutions point by point:
+    Thought: I now know the start and end time of the anomaly, and i need to report it to the agents  
+    Action: Speak
+    Action Input: ({"diagnose": The identified root causes of the anomaly are ..., "solution": The suggested optimization solutions are ..., "knowledge": ""})
 
     ===============
 
@@ -70,7 +80,7 @@ prompts:
     After you have got the observation from cpu_diagnosis_agent, announce it to the chief DBA, and use the following format:
     Thought: I now know the root cause of the anomaly, and i need to report it to the chief DBA  
     Action: Speak
-    Action Input: (the root cause you found)
+    Action Input: ({"diagnose": the root causes you found, "solution": the optimization solutions for the root causes splitted by '\n', "knowledge": the diagnosis knowledge you used})
 
     ===============
 
@@ -111,7 +121,7 @@ prompts:
     After you have got the observation from memory_diagnosis_agent, announce it to the chief DBA, and use the following format:
     Thought: I now know the root cause of the anomaly, and i need to report it to the chief DBA  
     Action: Speak
-    Action Input: (the root cause you found)
+    Action Input: ({"diagnose": the root causes you found, "solution": the optimization solutions for the root causes splitted by '\n', "knowledge": the diagnosis knowledge you used})
 
     ===============
 

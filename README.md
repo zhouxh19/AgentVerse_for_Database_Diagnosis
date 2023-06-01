@@ -12,10 +12,6 @@
     </a>
 </p>
 
-<p align="center">
-<img src="./imgs/title.png" width="512">
-</p>
-
 🤖 **AgentVerse** 🪐 provides a flexible framework that simplifies the process of building custom multi-agent environments for large language models (LLMs). Our framework is designed to enable researchers to quickly build and customize their own environments with minimal effort, allowing them to focus on their research rather than implementation details.
 
 ---

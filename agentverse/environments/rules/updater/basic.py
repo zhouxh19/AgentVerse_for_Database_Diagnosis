@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from agentverse.environments import BaseEnvironment
     from agentverse.agents import BaseAgent
 
+import pdb
 
 @UpdaterRegistry.register("basic")
 class BasicUpdater(BaseUpdater):
@@ -25,13 +26,14 @@ class BasicUpdater(BaseUpdater):
                 self.add_tool_response(
                     message.sender, environment.agents, message.tool_response
                 )
-            if message.content == "":
+
+            if message.content["diagnose"] == "":
                 continue
             added |= self.add_message_to_all_agents(environment.agents, message)
         # If no one speaks in this turn. Add an empty message to all agents
         if not added:
             for agent in environment.agents:
-                agent.add_message_to_memory([Message(content="[Silence]")])
+                agent.add_message_to_memory([Message(content={"diagnose": "[Silence]", "solution": [], "knowledge": ""})])
 
     def add_tool_response(
         self,
@@ -49,6 +51,7 @@ class BasicUpdater(BaseUpdater):
     def add_message_to_all_agents(
         self, agents: List[BaseAgent], message: Message
     ) -> bool:
+        # pdb.set_trace()
         if "all" in message.receiver:
             # If receiver is all, then add the message to all agents
             for agent in agents:

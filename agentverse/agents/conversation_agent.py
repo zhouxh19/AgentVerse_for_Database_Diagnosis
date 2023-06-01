@@ -33,9 +33,9 @@ class ConversationAgent(BaseAgent):
             logging.error(f"{self.name} failed to generate valid response.")
 
         message = Message(
-            content=""
+            content={"diagnose": "", "solution": [], "knowledge": ""}
             if parsed_response is None
-            else parsed_response.return_values["output"],
+            else {"diagnose": parsed_response.return_values["diagnose"], "solution": parsed_response.return_values["solution"], "knowledge": parsed_response.return_values["knowledge"]},
             sender=self.name,
             receiver=self.get_receiver(),
         )
@@ -62,12 +62,13 @@ class ConversationAgent(BaseAgent):
             logging.error(f"{self.name} failed to generate valid response.")
 
         message = Message(
-            content=""
+            content={"diagnose": "", "solution": [], "knowledge": ""}
             if parsed_response is None
-            else parsed_response.return_values["output"],
+            else {"diagnose": parsed_response.return_values["diagnose"], "solution": parsed_response.return_values["solution"], "knowledge": parsed_response.return_values["knowledge"]},
             sender=self.name,
             receiver=self.get_receiver(),
         )
+
         return message
 
     def _fill_prompt_template(self, env_description: str = "") -> str:
@@ -88,6 +89,7 @@ class ConversationAgent(BaseAgent):
         return Template(self.prompt_template).safe_substitute(input_arguments)
 
     def add_message_to_memory(self, messages: List[Message]) -> None:
+        # pdb.set_trace()
         self.memory.add_message(messages)
 
     def reset(self) -> None:
